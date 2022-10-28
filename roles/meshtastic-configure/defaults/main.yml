@@ -1,6 +1,7 @@
 msh:
   region: EU_868
   channel: LONG_FAST
+  url: https://www.meshtastic.org/e/#CgMSAQESCDgDQAdIAVAb
   sf:
     enabled: true
   mqtt:
