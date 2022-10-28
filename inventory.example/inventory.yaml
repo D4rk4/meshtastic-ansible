@@ -1,0 +1,17 @@
+all:
+  children:
+    common:
+      hosts:
+        self:
+          ansible_host: 127.0.0.1
+          ansible_user: root
+    mshhosts:
+      hosts:
+        self:
+          msh:
+           name: RR-FRIEND
+           lat: 12.3456
+           lon: 12.9876
+           wifi:
+            ssid: MyHome
+            pwd: RootMePlz
