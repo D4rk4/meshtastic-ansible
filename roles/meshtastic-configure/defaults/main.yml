@@ -1,0 +1,9 @@
+msh:
+  region: EU_868
+  channel: LONG_FAST
+  sf:
+    enabled: true
+  mqtt:
+    address: 68.183.155.202
+    encryption: false
+    json: false

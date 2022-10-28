@@ -1,0 +1,16 @@
+- name: Meshtastic
+  hosts: mshhosts
+#  gather_facts: no
+
+  tasks:
+  - import_role:
+      name: meshtastic-firmware
+    tags:
+      - upgrade
+      - never
+  - import_role:
+      name: meshtastic-configure
+    tags:
+      - upgrade
+      - config
+      - never

@@ -1,0 +1,12 @@
+*.swp
+*.retry
+*.pyc
+*.log
+*.bac
+*.bak
+*.back
+*.backup
+/logs/
+/fact_cache/
+/.idea/
+/inventory/

@@ -1,0 +1,140 @@
+- name: Install meshtastic
+  pip:
+    name:
+      - meshtastic
+      - pytap2
+    state: latest
+    executable: pip3
+
+## Not working in 1.3.x
+#- name: Reseting device to factory defaults
+#  ansible.builtin.shell: meshtastic --set device.factory_reset true --reboot
+#  tags: ['factory', 'never']
+#
+#- ansible.builtin.wait_for:
+#    timeout: 60
+#  tags: ['factory', 'never']
+
+- name: Setting up working channel and region
+  ansible.builtin.shell: meshtastic --set lora.modem_preset {{ msh.channel }} --set lora.region {{ msh.region }} --set lora.hop_limit 7
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'radio']
+
+- name: Setting up node name
+  ansible.builtin.shell: meshtastic --set-owner {{ msh.name }} --set-owner-short {{ msh.name[-3:] | regex_replace('-', '0') }}
+  when: "msh.name is defined"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'common']
+
+- name: Setting up common settings
+  ansible.builtin.shell: meshtastic --set position.position_broadcast_secs 90 \
+    --set position.gps_update_interval 15 \
+    --set display.screen_on_secs 120 \
+    --set power.sds_secs 7200
+    --set position.position_broadcast_smart_enabled true
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'common']
+
+- name: Setting up router role
+  ansible.builtin.shell: meshtastic \
+    --set device.role ROUTER \
+    --set auto_screen_carousel_secs 5 \
+    --set store_forward.enabled "{{ msh.sf.enabled }}" \
+    --set store_forward.records 50 \
+    --set lora.tx_power 20 \
+    --set bluetooth.enabled false \
+    --set power.wait_bluetooth_secs 3 \
+    --seturl "{{ msh.url }}" \
+    --set power.mesh_sds_timeout_secs 4294967295 \
+    --set power.min_wake_secs 300 \
+    --set power.sds_secs 300 \
+    --set power.ls_secs 60 \
+    --set power.is_power_saving false \
+    --set position.gps_attempt_time 3600 \
+    --set position.gps_update_interval 90 \
+    --set position.position_broadcast_smart_enabled false \
+    --set position.position_broadcast_secs 120
+  when: "'GW-' in msh.name or 'RR-' in msh.name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'router']
+
+- name: Setting up tracker role
+  ansible.builtin.shell: meshtastic \
+    --set device.role ROUTER_CLIENT \
+    --set bluetooth.enabled false \
+    --set wifi.enabled false \
+    --set lora.tx_power 20 \
+    --set power.is_power_saving false \
+    --set position.gps_attempt_time 3600 \
+    --set position.gps_update_interval 15 \
+    --set position.position_broadcast_smart_enabled true \
+    --set position.position_broadcast_secs 30 \
+    --pos-fields ALTITUDE SATINVIEW TIMESTAMP HEADING SPEED
+  when: "'TRK-' in msh.name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'tracker']
+
+
+- name: Setting up Internet Gateway role (con)
+  ansible.builtin.shell: meshtastic \
+    --set network.wifi_ssid {{ msh.wifi.ssid }} \
+    --set network.wifi_psk {{ msh.wifi.pwd }} \
+    --set network.wifi_enabled true \
+    --set network.wifi_mode CLIENT
+  when: "'GW-' in msh.name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'wifi']
+
+- name: Setting up Internet Gateway role (mqtt)
+  ansible.builtin.shell: meshtastic \
+    --set mqtt.enabled true \
+    --set mqtt.address {{ msh.mqtt.address }} \
+    --set mqtt.json_enabled {{ msh.mqtt.json }} \
+    --set mqtt.encryption_enabled {{ msh.mqtt.encryption }} \
+    --ch-set downlink_enabled true --ch-index 0 \
+    --ch-set uplink_enabled true --ch-index 0 \
+    --ch-set downlink_enabled true --ch-index 1 \
+    --ch-set uplink_enabled true --ch-index 1 \
+    --reboot
+  when: "'GW-' in msh.name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'mqtt']
+
+- name: Setting up fixed node position
+  ansible.builtin.shell: meshtastic \
+   --set position.fixed_position true \
+   --setlat {{ msh.lat }} --setlon {{ msh.lon}}
+  when: "msh.lat is defined and msh.lon is defined"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'gps']
+
+- name: Rebooting node
+  ansible.builtin.shell: meshtastic --reboot
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15

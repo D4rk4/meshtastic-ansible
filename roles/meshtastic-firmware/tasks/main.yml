@@ -1,0 +1,111 @@
+- name: Creating scrips dir
+  ansible.builtin.file:
+    path: /opt/scripts
+    state: directory
+
+- name: Copy reset script
+  ansible.builtin.template:
+    src: reset-mdev.sh
+    dest: /opt/scripts/reset-mdev.sh
+    mode: 0755
+
+- name: Update OPKG
+  ansible.builtin.shell: opkg update
+  when: ansible_pkg_mgr == 'opkg'
+
+- name: Install packages
+  ansible.builtin.shell: opkg install libffi python3-qrcode python3-yaml python3-pyserial python3-distutils python3-cryptography python3-pip python3-setuptools python3-dev unzip grep libustream-openssl
+  when: ansible_pkg_mgr == 'opkg'
+
+- name: Install packages
+  ansible.builtin.apt:
+    name:
+      - python3-cryptography
+      - python3-pip
+      - python3-setuptools
+      - python3-dev
+      - python3-yaml
+      - python3-serial
+      - python3-distutils
+      - python3-qrcode
+      - unzip
+      - grep
+    state: present
+    update_cache: yes
+  when: ansible_pkg_mgr == 'apt'
+  become: true
+
+- name: Install python packages
+  pip:
+    name:
+      - setuptools
+      - wheel
+      - reedsolo
+      - pexpect
+      - enum-compat
+      - dotmap
+    state: latest
+    executable: pip3
+
+- name: Install python meshtastic & esptool
+  pip:
+    name:
+      - meshtastic
+      - esptool
+    state: latest
+    executable: pip3
+
+- name: Try to reset ESP32 power
+  ansible.builtin.shell: /opt/scripts/reset-mdev.sh
+
+- name: Getting hardware model
+  ansible.builtin.shell: meshtastic --info | grep -Po "(?<='hwModel':\ ')[^'},]+" | head -1
+  register: msh_model
+
+
+- name: Looking for lastest release
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/meshtastic/Meshtastic-device/releases
+    return_content: true
+  register: github_response
+
+- name: Creating TEMP dir
+  file:
+    path: "{{ msh_temp }}"
+    state: directory
+
+- name: "Getting {{ github_response.json.0.tag_name }}"
+  loop: "{{ github_response.json.0.assets }}"
+  ansible.builtin.unarchive:
+    src: "{{ item.browser_download_url }}"
+    remote_src: yes
+    keep_newer: yes
+    dest: /tmp/mshfw
+  when: "'firmware-' in item.name"
+
+- name: Connected device is TTG-LORA v1
+  set_fact:
+    msh_firmware: "firmware-tlora-v1-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}.bin"
+  when: "msh_model.stdout == 'TLORA_V1'"
+
+- name: Connected device is TBEAM
+  set_fact:
+    msh_firmware: "firmware-tbeam-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}.bin"
+  when: "msh_model.stdout == 'TBEAM'"
+
+- name: Upgrading firmware
+  ansible.builtin.shell: "./device-install.sh -f {{ msh_firmware }}"
+  args:
+    chdir: "{{ msh_temp }}"
+  register: device_install
+  when: "msh_firmware is defined"
+
+- name: OUTPUT
+  debug:
+    var: device_install.stdout_lines
+
+- name: Remove TEMP dir
+  file:
+    path: "{{ msh_temp }}"
+    state: absent
+
