@@ -4,6 +4,14 @@ msh:
   url: https://www.meshtastic.org/e/#CgMSAQESCDgDQAdIAVAb
   sf:
     enabled: true
+  rr:
+    power:
+      wake: 120
+    position:
+      gps:
+        update: 120
+      broadcast:
+        sec: 600
   mqtt:
     address: 68.183.155.202
     encryption: false

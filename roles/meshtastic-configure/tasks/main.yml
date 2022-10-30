@@ -64,14 +64,14 @@
     --set power.wait_bluetooth_secs 3 \
     --seturl "{{ msh.url }}" \
     --set power.mesh_sds_timeout_secs 4294967295 \
-    --set power.min_wake_secs 300 \
+    --set power.min_wake_secs "{{ msh.rr.power.wake }}" \
     --set power.sds_secs 300 \
     --set power.ls_secs 60 \
     --set power.is_power_saving false \
     --set position.gps_attempt_time 3600 \
-    --set position.gps_update_interval 90 \
+    --set position.gps_update_interval "{{ msh.rr.position.gps.update }}" \
     --set position.position_broadcast_smart_enabled false \
-    --set position.position_broadcast_secs 120
+    --set position.position_broadcast_secs "{{ msh.rr.position.broadcast.sec }}"
   when: "'GW-' in msh.name or 'RR-' in msh.name"
   register: res
   until: "res is not failed"
