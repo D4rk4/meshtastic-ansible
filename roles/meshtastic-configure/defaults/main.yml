@@ -9,7 +9,7 @@ msh:
       wake: 120
     position:
       gps:
-        update: 120
+        upd: 120
       broadcast:
         sec: 600
   mqtt:
