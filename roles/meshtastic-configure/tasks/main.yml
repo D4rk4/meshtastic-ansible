@@ -103,8 +103,8 @@
   ansible.builtin.shell: meshtastic \
     --set network.wifi_ssid {{ msh.wifi.ssid }} \
     --set network.wifi_psk {{ msh.wifi.pwd }} \
-    --set network.wifi_enabled true \
-    --set network.wifi_mode CLIENT
+    --set network.wifi_enabled true 
+#    --set network.wifi_mode CLIENT
   when: "'GW-' in msh.name"
   register: res
   until: "res is not failed"
