@@ -6,14 +6,13 @@
     state: latest
     executable: pip3
 
-## Not working in 1.3.x
-#- name: Reseting device to factory defaults
-#  ansible.builtin.shell: meshtastic --set device.factory_reset true --reboot
-#  tags: ['factory', 'never']
-#
-#- ansible.builtin.wait_for:
-#    timeout: 60
-#  tags: ['factory', 'never']
+- name: Reseting device to factory defaults
+  ansible.builtin.shell: meshtastic --factory-reset --reboot
+  tags: ['factory', 'never']
+
+- ansible.builtin.wait_for:
+    timeout: 60
+  tags: ['factory', 'never']
 
 - name: Setting up working channel and region
   ansible.builtin.shell: meshtastic --set lora.modem_preset {{ msh.channel }} --set lora.region {{ msh.region }} --set lora.hop_limit 7
@@ -43,6 +42,16 @@
   retries: 6
   delay: 15
   tags: ['config', 'common']
+
+- name: Setting up admin/config role
+  ansible.builtin.shell: meshtastic \
+    --seturl "{{ msh.url }}"
+  when: "'CTL-' in msh.name or 'ADM-' in msh.name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'admin']
 
 - name: Setting up router role
   ansible.builtin.shell: meshtastic \
