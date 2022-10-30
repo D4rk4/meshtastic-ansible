@@ -36,6 +36,7 @@
     --set position.gps_update_interval 15 \
     --set display.screen_on_secs 120 \
     --set display.compass_north_top true \
+    --set display.gps_format gpsFormatDms \
     --set power.sds_secs 7200
     --set position.position_broadcast_smart_enabled true
   register: res
