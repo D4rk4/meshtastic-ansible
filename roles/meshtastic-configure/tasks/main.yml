@@ -11,11 +11,11 @@
   tags: ['factory', 'never']
 
 - ansible.builtin.wait_for:
-    timeout: 60
+    timeout: 10
   tags: ['factory', 'never']
 
 - name: Setting up working channel and region
-  ansible.builtin.shell: meshtastic --set lora.modem_preset {{ msh.channel }} --set lora.region {{ msh.region }} --set lora.hop_limit 7
+  ansible.builtin.shell: meshtastic --set lora.use_preset 1 --set lora.modem_preset {{ msh.channel }} --set lora.region {{ msh.region }} --set lora.hop_limit 7
   register: res
   until: "res is not failed"
   retries: 6
@@ -36,9 +36,12 @@
     --set position.gps_update_interval 15 \
     --set display.screen_on_secs 120 \
     --set display.compass_north_top true \
-    --set display.gps_format gpsFormatDms \
+    --set display.gps_format DMS \
     --set power.sds_secs 7200
-    --set position.position_broadcast_smart_enabled true
+    --set position.position_broadcast_smart_enabled true \
+    --set telemetry.device_update_interval 120 \
+    --set telemetry.environment_update_interval 120 \
+    --set telemetry.environment_measurement_enabled true
   register: res
   until: "res is not failed"
   retries: 6
@@ -105,9 +108,8 @@
   ansible.builtin.shell: meshtastic \
     --set network.wifi_ssid {{ msh.wifi.ssid }} \
     --set network.wifi_psk {{ msh.wifi.pwd }} \
-    --set network.wifi_enabled true 
-#    --set network.wifi_mode CLIENT
-  when: "'GW-' in msh.name"
+    --set network.wifi_enabled true
+  when: "msh.wifi.ssid is defined and msh.wifi.pwd is defined"
   register: res
   until: "res is not failed"
   retries: 6
@@ -120,11 +122,10 @@
     --set mqtt.address {{ msh.mqtt.address }} \
     --set mqtt.json_enabled {{ msh.mqtt.json }} \
     --set mqtt.encryption_enabled {{ msh.mqtt.encryption }} \
+    --set mqtt.username {{ msh.mqtt.username }} \
+    --set mqtt.password {{ msh.mqtt.password }} \
     --ch-set downlink_enabled true --ch-index 0 \
-    --ch-set uplink_enabled true --ch-index 0 \
-    --ch-set downlink_enabled true --ch-index 1 \
-    --ch-set uplink_enabled true --ch-index 1 \
-    --reboot
+    --ch-set uplink_enabled true --ch-index 0 --reboot
   when: "'GW-' in msh.name"
   register: res
   until: "res is not failed"

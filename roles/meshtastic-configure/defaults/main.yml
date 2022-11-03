@@ -1,9 +1,9 @@
 msh:
   region: EU_868
   channel: LONG_FAST
-  url: https://www.meshtastic.org/e/#CgMSAQESCDgDQAdIAVAb
+  url: "https://www.meshtastic.org/e/#CgMSAQESCggBOANAB0gBUBs"
   sf:
-    enabled: true
+    enabled: "true"
   rr:
     power:
       wake: 120
@@ -13,6 +13,8 @@ msh:
       broadcast:
         sec: 600
   mqtt:
-    address: 68.183.155.202
-    encryption: false
-    json: false
+    address: "mqtt.meshtastic.org"
+    encryption: "false"
+    json: "false"
+    username: "meshdev"
+    password: "large4cats"

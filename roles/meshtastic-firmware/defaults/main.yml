@@ -1,1 +1,3 @@
-msh_temp: /tmp/mshfw
+msh:
+ fw:
+   temp: /tmp/mshfw
