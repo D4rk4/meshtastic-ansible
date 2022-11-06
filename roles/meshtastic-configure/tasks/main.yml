@@ -83,6 +83,16 @@
   delay: 15
   tags: ['config', 'router']
 
+- name: Setting up low powered node
+  ansible.builtin.shell: meshtastic --set power.is_power_saving true
+  when: "'-LP-' in msh.name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'router']
+
+
 - name: Setting up tracker role
   ansible.builtin.shell: meshtastic \
     --set device.role ROUTER_CLIENT \
