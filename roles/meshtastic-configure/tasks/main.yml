@@ -64,15 +64,14 @@
     --set auto_screen_carousel_secs 5 \
     --set store_forward.enabled "{{ msh.sf.enabled }}" \
     --set store_forward.records 50 \
-    --set lora.tx_power 20 \
+    --set lora.tx_power 27 \
     --set bluetooth.enabled false \
     --set power.wait_bluetooth_secs 1 \
     --seturl "{{ msh.url }}" \
     --set power.mesh_sds_timeout_secs 4294967295 \
     --set power.min_wake_secs "{{ msh.rr.power.wake }}" \
-    --set power.sds_secs 300 \
-    --set power.ls_secs 60 \
-    --set power.is_power_saving false \
+    --set power.sds_secs 60 \
+    --set power.ls_secs 15 \
     --set position.gps_attempt_time 3600 \
     --set position.gps_update_interval "{{ msh.rr.position.gps.upd }}" \
     --set position.position_broadcast_smart_enabled false \
