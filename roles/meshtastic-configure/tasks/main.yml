@@ -48,6 +48,31 @@
   delay: 15
   tags: ['config', 'common']
 
+- name: Getting hardware model
+  ansible.builtin.shell: meshtastic --info | grep -Po "(?<='hwModel':\ ')[^'},]+" | head -1
+  when: "'TTY' in msh.name"
+  register: msh_model
+  until: "msh_model is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'tty']
+
+- name: Connfiguring serial module (TLORA v1.3)
+  # Brother EP-44 and Minitel comon settings (untested)
+  ansible.builtin.shell: meshtastic --set serial.enabled true \
+    --set serial.mode TEXTMSG \
+    --set serial.baud BAUD_1200 \
+    --set serial.rxd 17 \
+    --set serial.txd 16 \
+    --set serial.echo true
+  when: "msh_model.stdout == 'TLORA_V1_1P3' and 'TTY' in msh.name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'common']
+
+
 - name: Setting up admin/config role
   ansible.builtin.shell: meshtastic \
     --seturl "{{ msh.url }}"
