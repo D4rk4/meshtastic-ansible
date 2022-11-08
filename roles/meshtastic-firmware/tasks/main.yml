@@ -47,7 +47,18 @@
 # ToDo: move to common
 - name: Getting hardware model
   ansible.builtin.shell: meshtastic --info | grep -Po "(?<='hwModel':\ ')[^'},]+" | head -1
-  register: msh_model
+  register: msh_model_detect
+  when: "hw is not defined"
+
+- name: Redefine model var (detected)
+  set_fact:
+    msh_model: "{{ msh_model_detect.stdout }}"
+  when: "hw is not defined"
+
+- name: Redefine model var (manual)
+  set_fact:
+    msh_model: "{{ hw }}"
+  when: "hw is defined"
 
 - name: Looking for lastest release
   local_action:
@@ -75,17 +86,17 @@
 - name: Connected device is TTGO-LORA v1
   set_fact:
     msh_firmware: "firmware-tlora-v1-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}.bin"
-  when: "msh_model.stdout == 'TLORA_V1'"
+  when: "msh_model == 'TLORA_V1'"
 
 - name: Connected device is TTGO-LORA v1.3
   set_fact:
     msh_firmware: "firmware-tlora_v1_3-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}.bin"
-  when: "msh_model.stdout == 'TLORA_V1_1P3'"
+  when: "msh_model == 'TLORA_V1_1P3'"
 
 - name: Connected device is TBEAM
   set_fact:
     msh_firmware: "firmware-tbeam-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}.bin"
-  when: "msh_model.stdout == 'TBEAM'"
+  when: "msh_model == 'TBEAM'"
 
 - name: Creating TEMP dir (REMOTE)
   ansible.builtin.file:

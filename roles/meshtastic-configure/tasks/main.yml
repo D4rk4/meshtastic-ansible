@@ -57,6 +57,11 @@
   delay: 15
   tags: ['config', 'tty']
 
+- name: Redefine model var (detected)
+  set_fact:
+    msh_model: "msh_model.stdout"
+  tags: ['config', 'tty']
+
 - name: Connfiguring serial module (TLORA v1.3)
   # Brother EP-44 and Minitel comon settings (untested)
   ansible.builtin.shell: meshtastic --set serial.enabled true \
@@ -65,7 +70,7 @@
     --set serial.rxd 17 \
     --set serial.txd 16 \
     --set serial.echo true
-  when: "msh_model.stdout == 'TLORA_V1_1P3' and 'TTY' in msh.name"
+  when: "msh_model == 'TLORA_V1_1P3' and 'TTY' in msh.name"
   register: res
   until: "res is not failed"
   retries: 6
@@ -109,7 +114,9 @@
   tags: ['config', 'router']
 
 - name: Setting up low powered node
-  ansible.builtin.shell: meshtastic --set power.is_power_saving true
+  ansible.builtin.shell: meshtastic \
+    --set power.is_power_saving true \
+    --set bluetooth.enabled false
   when: "'-LP-' in msh.name"
   register: res
   until: "res is not failed"
@@ -184,3 +191,4 @@
   until: "res is not failed"
   retries: 6
   delay: 15
+  tags: ['config', 'reboot']
