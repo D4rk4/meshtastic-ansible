@@ -91,20 +91,34 @@
 - name: Setting up router role
   ansible.builtin.shell: meshtastic \
     --set device.role ROUTER \
-    --set auto_screen_carousel_secs 5 \
+    --set position.position_broadcast_smart_enabled false \
+    --set lora.tx_power 27
+  when: "'GW-' in msh.name or 'RR-' in msh.name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'router']
+
+- name: Fine tune params for ROUTER role (common)
+  ansible.builtin.shell: meshtastic \
     --set store_forward.enabled "{{ msh.sf.enabled }}" \
     --set store_forward.records 50 \
-    --set lora.tx_power 27 \
-    --set bluetooth.enabled false \
-    --set power.wait_bluetooth_secs 1 \
     --seturl "{{ msh.url }}" \
-    --set power.mesh_sds_timeout_secs 4294967295 \
-    --set power.min_wake_secs "{{ msh.rr.power.wake }}" \
-    --set power.sds_secs 60 \
-    --set power.ls_secs 15 \
+    --set auto_screen_carousel_secs 5 \
+    --set power.wait_bluetooth_secs 1 \
+    --set bluetooth.enabled false
+  when: "'GW-' in msh.name or 'RR-' in msh.name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'router']
+
+- name: Fine tune params for ROUTER role (position)
+  ansible.builtin.shell: meshtastic \
     --set position.gps_attempt_time 3600 \
     --set position.gps_update_interval "{{ msh.rr.position.gps.upd }}" \
-    --set position.position_broadcast_smart_enabled false \
     --set position.position_broadcast_secs "{{ msh.rr.position.broadcast.sec }}"
   when: "'GW-' in msh.name or 'RR-' in msh.name"
   register: res
@@ -112,6 +126,19 @@
   retries: 6
   delay: 15
   tags: ['config', 'router']
+
+- name: Fine tune params for ROUTER role (power)
+  ansible.builtin.shell: meshtastic \
+    --set power.mesh_sds_timeout_secs 4294967295 \
+    --set power.min_wake_secs "{{ msh.rr.power.wake }}" \
+    --set power.sds_secs 60
+  when: "'GW-' in msh.name or 'RR-' in msh.name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'router']
+
 
 - name: Setting up low powered node
   ansible.builtin.shell: meshtastic \
