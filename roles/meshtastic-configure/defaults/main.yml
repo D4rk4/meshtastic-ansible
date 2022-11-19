@@ -1,6 +1,7 @@
 msh:
   region: EU_868
   channel: LONG_FAST
+  maxhops: 5
   url: "https://www.meshtastic.org/e/#CgMSAQESCggBOANAB0gBUBs"
   sf:
     enabled: "true"
