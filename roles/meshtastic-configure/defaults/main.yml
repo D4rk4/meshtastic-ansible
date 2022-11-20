@@ -8,6 +8,7 @@ msh:
   rr:
     power:
       wake: 120
+      sds: 4294967295
     position:
       gps:
         upd: 120

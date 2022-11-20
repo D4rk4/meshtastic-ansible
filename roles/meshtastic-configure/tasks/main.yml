@@ -9,29 +9,29 @@
 - name: Try to get node name
   ansible.builtin.shell: meshtastic --info | grep Owner | awk '{print $2}'
   register: msh_name_detect
-  when: "msh.name is not defined"
+  when: "msh.name is not defined and name is not defined"
   until: "msh_name_detect is not failed"
   retries: 2
   delay: 15
-  tags: ['config']
+  tags: ['config', 'common', 'tty', 'admin', 'router', 'mqtt']
 
 - name: Redefine node name (detected)
   set_fact:
     msh_name: "{{ msh_name_detect.stdout }}"
-  when: "name is not defined"
-  tags: ['config']
+  when: "msh_name_detect is defined and msh.name is not defined and name is not defined"
+  tags: ['config', 'common', 'tty', 'admin', 'router', 'mqtt']
 
 - name: Redefine node name (manual)
   set_fact:
     msh_name: "{{ name }}"
-  when: "name is defined"
-  tags: ['config']
+  when: "name is defined and msh.name is not defined"
+  tags: ['config', 'common', 'tty', 'admin', 'router', 'mqtt']
 
 - name: Redefine node name (from inventory)
   set_fact:
     msh_name: "{{ msh.name }}"
   when: "msh.name is defined"
-  tags: ['config']
+  tags: ['config', 'common', 'tty', 'admin', 'router', 'mqtt']
 
 - name: Reseting device to factory defaults
   ansible.builtin.shell: meshtastic --factory-reset --reboot
@@ -165,7 +165,7 @@
   ansible.builtin.shell: meshtastic \
     --set power.mesh_sds_timeout_secs 4294967295 \
     --set power.min_wake_secs "{{ msh.rr.power.wake }}" \
-    --set power.sds_secs 60
+    --set power.sds_secs "{{ msh.rr.power.sds }}"
   when: "'GW-' in msh_name or 'RR-' in msh_name"
   register: res
   until: "res is not failed"
