@@ -3,7 +3,7 @@
   when: ansible_pkg_mgr == 'opkg'
 
 - name: Install packages
-  ansible.builtin.shell: opkg install libffi python3-qrcode python3-yaml python3-pyserial python3-distutils python3-cryptography python3-pip python3-setuptools python3-dev unzip grep libustream-openssl
+  ansible.builtin.shell: opkg install libffi python3-qrcode python3-yaml python3-pyserial python3-distutils python3-cryptography python3-pip python3-setuptools python3-dev unzip grep libustream-openssl bash
   when: ansible_pkg_mgr == 'opkg'
 
 - name: Install packages
@@ -116,7 +116,7 @@
   when: "msh_firmware is defined"
 
 - name: Upgrading firmware
-  ansible.builtin.shell: "./device-install.sh -f {{ msh_firmware }}"
+  ansible.builtin.shell: "bash ./device-install.sh -f {{ msh_firmware }}"
   args:
     chdir: "{{ msh.fw.temp }}-install"
   register: device_install
