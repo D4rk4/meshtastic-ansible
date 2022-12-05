@@ -4,10 +4,13 @@ msh:
   maxhops: 5
   url: "https://www.meshtastic.org/e/#CgMSAQESCggBOANAB0gBUBs"
   sf:
-    enabled: "true"
+    enabled: true
   rr:
     power:
       wake: 120
+      sds: 4294967295
+    lpower:
+      wake: 30
       sds: 4294967295
     position:
       gps:
@@ -15,8 +18,8 @@ msh:
       broadcast:
         sec: 600
   mqtt:
-    address: "mqtt.meshtastic.org"
-    encryption: "false"
-    json: "false"
-    username: "meshdev"
-    password: "large4cats"
+    address: mqtt.meshtastic.org
+    encryption: false
+    json: false
+    username: meshdev
+    password: large4cats

@@ -66,7 +66,7 @@
     --set display.gps_format DMS \
     --set power.sds_secs 7200
     --set position.position_broadcast_smart_enabled true \
-    --set telemetry.device_update_interval 120 \
+    --set telemetry.device_update_interval 60 \
     --set telemetry.environment_update_interval 120 \
     --set telemetry.environment_measurement_enabled true
   register: res
@@ -124,7 +124,7 @@
 
 - name: Setting up router role
   ansible.builtin.shell: meshtastic \
-    --set device.role ROUTER \
+    --set device.role ROUTER_CLIENT \
     --set position.position_broadcast_smart_enabled false \
     --set lora.tx_power 27
   when: "'GW-' in msh_name or 'RR-' in msh_name"
@@ -140,7 +140,6 @@
     --set store_forward.records 50 \
     --seturl "{{ msh.url }}" \
     --set auto_screen_carousel_secs 5 \
-    --set power.wait_bluetooth_secs 1 \
     --set bluetooth.enabled false
   when: "'GW-' in msh_name or 'RR-' in msh_name"
   register: res
@@ -164,8 +163,11 @@
 - name: Fine tune params for ROUTER role (power)
   ansible.builtin.shell: meshtastic \
     --set power.mesh_sds_timeout_secs 4294967295 \
-    --set power.min_wake_secs "{{ msh.rr.power.wake }}" \
-    --set power.sds_secs "{{ msh.rr.power.sds }}"
+    --set power.min_wake_secs {{ msh.rr.power.wake }} \
+    --set power.sds_secs {{ msh.rr.power.sds }} \
+    --set telemetry.device_update_interval 30 \
+    --set telemetry.environment_update_interval 120 \
+    --set power.on_battery_shutdown_after_secs 0
   when: "'GW-' in msh_name or 'RR-' in msh_name"
   register: res
   until: "res is not failed"
@@ -177,7 +179,12 @@
 - name: Setting up low powered node
   ansible.builtin.shell: meshtastic \
     --set power.is_power_saving true \
-    --set bluetooth.enabled false
+    --set bluetooth.enabled false \
+    --set power.min_wake_secs "{{ msh.rr.lpower.wake }}" \
+    --set power.sds_secs "{{ msh.rr.lpower.sds }}" \
+    --set telemetry.device_update_interval 600 \
+    --set telemetry.environment_update_interval 600 \
+    --set telemetry.environment_measurement_enabled true
   when: "'-LP-' in msh_name"
   register: res
   until: "res is not failed"
@@ -189,7 +196,7 @@
 - name: Setting up tracker role
   ansible.builtin.shell: meshtastic \
     --set device.role ROUTER_CLIENT \
-    --set bluetooth.enabled false \
+    --set bluetooth.enabled true \
     --set wifi.enabled false \
     --set lora.tx_power 20 \
     --set power.is_power_saving false \
@@ -252,7 +259,21 @@
   until: "res is not failed"
   retries: 6
   delay: 15
-  tags: ['config', 'radio']
+  tags: ['config', 'radio', 'router']
+
+- name: Fine tune params for ROUTER role (again)
+  ansible.builtin.shell: meshtastic \
+    --set power.mesh_sds_timeout_secs 4294967295 \
+    --set power.min_wake_secs {{ msh.rr.power.wake }} \
+    --set power.sds_secs {{ msh.rr.power.sds }} \
+  when: "'GW-' in msh_name or 'RR-' in msh_name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'router']
+
+
 
 - name: Rebooting node
   ansible.builtin.shell: meshtastic --reboot
@@ -260,4 +281,4 @@
   until: "res is not failed"
   retries: 6
   delay: 15
-  tags: ['config', 'reboot']
+  tags: ['config', 'reboot', 'radio', 'router']
