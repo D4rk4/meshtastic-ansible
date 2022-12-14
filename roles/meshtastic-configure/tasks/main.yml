@@ -114,7 +114,8 @@
 
 - name: Setting up admin/config role
   ansible.builtin.shell: meshtastic \
-    --seturl "{{ msh.url }}"
+    --seturl "{{ msh.url }}" \
+    --ch-index 1 --ch-enable
   when: "'CTL-' in msh_name or 'ADM-' in msh_name"
   register: res
   until: "res is not failed"
@@ -139,6 +140,7 @@
     --set store_forward.enabled "{{ msh.sf.enabled }}" \
     --set store_forward.records 50 \
     --seturl "{{ msh.url }}" \
+    --ch-index 1 --ch-enable \
     --set auto_screen_carousel_secs 5 \
     --set bluetooth.enabled false
   when: "'GW-' in msh_name or 'RR-' in msh_name"
