@@ -17,6 +17,7 @@ msh:
         upd: 120
       broadcast:
         sec: 600
+    role: ROUTER_CLIENT
   mqtt:
     address: mqtt.meshtastic.org
     encryption: false

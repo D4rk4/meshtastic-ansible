@@ -6,6 +6,7 @@
 *.bak
 *.back
 *.backup
+local.*.sh
 /logs/
 /fact_cache/
 /.idea/
