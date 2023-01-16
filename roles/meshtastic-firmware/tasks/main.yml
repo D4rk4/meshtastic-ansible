@@ -3,7 +3,7 @@
   when: ansible_pkg_mgr == 'opkg'
 
 - name: Install packages
-  ansible.builtin.shell: opkg install libffi python3-qrcode python3-yaml python3-pyserial python3-distutils python3-cryptography python3-pip python3-setuptools python3-dev unzip grep libustream-openssl bash
+  ansible.builtin.shell: opkg install libffi python3-yaml python3-pyserial python3-distutils python3-cryptography python3-pip python3-setuptools python3-dev unzip grep libustream-openssl bash
   when: ansible_pkg_mgr == 'opkg'
 
 - name: Install packages
@@ -85,17 +85,17 @@
 
 - name: Connected device is TTGO-LORA v1
   set_fact:
-    msh_firmware: "firmware-tlora-v1-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}.bin"
+    msh_firmware: "firmware-tlora-v1-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}"
   when: "msh_model == 'TLORA_V1'"
 
 - name: Connected device is TTGO-LORA v1.3
   set_fact:
-    msh_firmware: "firmware-tlora_v1_3-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}.bin"
+    msh_firmware: "firmware-tlora_v1_3-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}"
   when: "msh_model == 'TLORA_V1_1P3'"
 
 - name: Connected device is TBEAM
   set_fact:
-    msh_firmware: "firmware-tbeam-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}.bin"
+    msh_firmware: "firmware-tbeam-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}"
   when: "msh_model == 'TBEAM'"
 
 - name: Creating TEMP dir (REMOTE)
@@ -109,14 +109,16 @@
     dest: "{{ msh.fw.temp }}-install/{{ item }}"
     mode: 0755
   with_items:
-    - "{{ msh_firmware }}"
     - "device-install.sh"
-    - "bleota.bin"
+    - "{{ msh_firmware }}"
+    - "{{ msh_firmware }}-d.bin"
     - "littlefs-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}.bin"
+    - "littlefs-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}-d.bin"
   when: "msh_firmware is defined"
+  ignore_errors: true
 
 - name: Upgrading firmware
-  ansible.builtin.shell: "bash ./device-install.sh -f {{ msh_firmware }}"
+  ansible.builtin.shell: "bash ./device-install.sh -f {{ msh_firmware }}*.bin"
   args:
     chdir: "{{ msh.fw.temp }}-install"
   register: device_install

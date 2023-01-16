@@ -96,13 +96,28 @@
   when: "hw is defined"
   tags: ['config', 'tty']
 
-- name: Connfiguring serial module (TLORA v1)
+- name: Connfiguring serial module (RAK4631)
   # Brother EP-44 and Minitel comon settings (untested)
   ansible.builtin.shell: meshtastic --set serial.enabled true \
     --set serial.mode TEXTMSG \
     --set serial.baud BAUD_1200 \
-    --set serial.rxd 13 \
-    --set serial.txd 12 \
+    --set serial.rxd 15 \
+    --set serial.txd 16 \
+    --set serial.echo true
+  when: "msh_model == 'RAK4631' and 'TTY' in msh_name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'common', 'tty']
+
+- name: Connfiguring serial module (RAK4631)
+  # Brother EP-44 and Minitel comon settings (untested)
+  ansible.builtin.shell: meshtastic --set serial.enabled true \
+    --set serial.mode TEXTMSG \
+    --set serial.baud BAUD_1200 \
+    --set serial.rxd 12 \
+    --set serial.txd 13 \
     --set serial.echo true
   when: "msh_model == 'TLORA_V1' and 'TTY' in msh_name"
   register: res
@@ -288,6 +303,28 @@
   tags: ['config', 'router']
 
 
+- name: Setting up Internet Gateway role (mqtt, again)
+  ansible.builtin.shell: meshtastic \
+    --set mqtt.enabled true \
+    --set mqtt.address {{ msh.mqtt.address }} --reboot
+  when: "'GW-' in msh_name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'mqtt']
+
+- name: Setting up fixed BT pin
+  ansible.builtin.shell: meshtastic \
+   --set bluetooth.enabled true \
+   --set bluetooth.fixed_pin {{ msh.rr.bt.pin }}
+  when: "msh.rr.bt.pin is defined and 'RR-' in msh_name"
+  register: res
+  until: "res is not failed"
+  retries: 6
+  delay: 15
+  tags: ['config', 'router']
+
 
 - name: Rebooting node
   ansible.builtin.shell: meshtastic --reboot
@@ -296,3 +333,5 @@
   retries: 6
   delay: 15
   tags: ['config', 'reboot', 'radio', 'router']
+
+
