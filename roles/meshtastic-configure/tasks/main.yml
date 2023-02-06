@@ -131,7 +131,7 @@
   ansible.builtin.shell: meshtastic \
     --seturl "{{ msh.url }}" \
     --ch-index 1 --ch-enable
-  when: "'CTL-' in msh_name or 'ADM-' in msh_name"
+  when: "'CTL-' in msh_name or '-CTL-' in msh_name"
   register: res
   until: "res is not failed"
   retries: 6
@@ -213,7 +213,7 @@
 
 - name: Setting up tracker role
   ansible.builtin.shell: meshtastic \
-    --set device.role ROUTER_CLIENT \
+    --set device.role TRACKER \
     --set bluetooth.enabled true \
     --set wifi.enabled false \
     --set lora.tx_power 20 \

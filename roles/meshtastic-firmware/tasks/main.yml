@@ -25,7 +25,7 @@
   become: true
 
 - name: Install python packages
-  pip:
+  ansible.builtin.pip:
     name:
       - setuptools
       - wheel
@@ -33,11 +33,12 @@
       - pexpect
       - enum-compat
       - dotmap
-    state: latest
+      - click
+      - ecdsa
     executable: pip3
 
-- name: Install python meshtastic & esptool
-  pip:
+- name: Install python meshtastic, esptool
+  ansible.builtin.pip:
     name:
       - meshtastic
       - esptool
@@ -98,6 +99,11 @@
     msh_firmware: "firmware-tbeam-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}"
   when: "msh_model == 'TBEAM'"
 
+- name: Connected device is RAK4631
+  set_fact:
+    msh_firmware: "firmware-rak4631-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}"
+  when: "msh_model == 'RAK4631'"
+
 - name: Creating TEMP dir (REMOTE)
   ansible.builtin.file:
     path: "{{ msh.fw.temp }}-install"
@@ -110,20 +116,48 @@
     mode: 0755
   with_items:
     - "device-install.sh"
-    - "{{ msh_firmware }}"
-    - "{{ msh_firmware }}-d.bin"
+    - "bleota.bin"
+    - "{{ msh_firmware }}.bin"
+    - "{{ msh_firmware }}-ota.zip"
     - "littlefs-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}.bin"
+    - "{{ msh_firmware }}-d.bin"
     - "littlefs-{{ github_response.json.0.tag_name | regex_replace('^v(.*)$', '\\1') }}-d.bin"
-  when: "msh_firmware is defined"
-  ignore_errors: true
 
-- name: Upgrading firmware
+  when: "msh_firmware is defined"
+  failed_when: false
+  no_log: true
+
+- name: Upgrading firmware (ESP32)
   ansible.builtin.shell: "bash ./device-install.sh -f {{ msh_firmware }}*.bin"
   args:
     chdir: "{{ msh.fw.temp }}-install"
   register: device_install
-  when: "msh_firmware is defined"
+  when: "msh_firmware is defined and msh_model != 'RAK4631'"
 
+- name: Install python packages required for RAK4631
+  ansible.builtin.pip:
+    name:
+      - adafruit-nrfutil
+      - click==7.0
+    executable: pip3
+  when: "msh_firmware is defined and msh_model == 'RAK4631'"
+
+- name: Rebooting device
+  ansible.builtin.shell: meshtastic --reboot
+  when: "msh_firmware is defined and msh_model == 'RAK4631'"
+
+- name: Sleep for 20 seconds
+  ansible.builtin.wait_for:
+    timeout: 20
+  when: "msh_firmware is defined and msh_model == 'RAK4631'"
+
+- name: Upgrading firmware (RAK4631)
+  ansible.builtin.shell: "adafruit-nrfutil --verbose dfu serial  --port /dev/ttyACM0 -b 115200 --singlebank --touch 1200 --package {{ msh_firmware }}-ota.zip"
+  args:
+      chdir: "{{ msh.fw.temp }}-install"
+      executable: /bin/bash
+  register: device_install
+  when: "msh_firmware is defined and msh_model == 'RAK4631'"
 - name: OUTPUT
   debug:
     var: device_install.stdout_lines
