@@ -1,10 +1,11 @@
 - name: Install meshtastic
-  pip:
+  ansible.builtin.pip:
     name:
       - meshtastic
       - pytap2
     state: latest
     executable: pip3
+    extra_args: "{{ (ansible_distribution == 'Kali' or (ansible_distribution == 'Debian' and ansible_distribution_release == 'bookworm')) | ternary('--break-system-packages', omit) }}"
 
 - name: Try to get node name
   ansible.builtin.shell: meshtastic --info | grep Owner | awk '{print $2}'
@@ -111,7 +112,7 @@
   delay: 15
   tags: ['config', 'common', 'tty']
 
-- name: Connfiguring serial module (RAK4631)
+- name: Connfiguring serial module (TLORA_V1)
   # Brother EP-44 and Minitel comon settings (untested)
   ansible.builtin.shell: meshtastic --set serial.enabled true \
     --set serial.mode TEXTMSG \
@@ -151,7 +152,7 @@
   delay: 15
   tags: ['config', 'router']
 
-- name: Fine tune params for ROUTER role (common)
+- name: Fine tune params for ROUTER/GATEWAY role (common)
   ansible.builtin.shell: meshtastic \
     --set store_forward.enabled "{{ msh.sf.enabled }}" \
     --set store_forward.records 50 \
@@ -216,12 +217,14 @@
     --set device.role TRACKER \
     --set bluetooth.enabled true \
     --set wifi.enabled false \
-    --set lora.tx_power 20 \
+    --set lora.tx_power 27 \
     --set power.is_power_saving false \
     --set position.gps_attempt_time 3600 \
     --set position.gps_update_interval 15 \
-    --set position.position_broadcast_smart_enabled true \
     --set position.position_broadcast_secs 30 \
+    --set telemetry.device_update_interval 30 \
+    --set telemetry.environment_update_interval 30 \
+    --set telemetry.environment_measurement_enabled true \
     --pos-fields ALTITUDE SATINVIEW TIMESTAMP HEADING SPEED
   when: "'TRK-' in msh_name"
   register: res

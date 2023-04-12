@@ -36,6 +36,7 @@
       - click
       - ecdsa
     executable: pip3
+    extra_args: "{{ (ansible_distribution == 'Kali' or (ansible_distribution == 'Debian' and ansible_distribution_release == 'bookworm')) | ternary('--break-system-packages', omit) }}"
 
 - name: Install python meshtastic, esptool
   ansible.builtin.pip:
@@ -44,6 +45,7 @@
       - esptool
     state: latest
     executable: pip3
+    extra_args: "{{ (ansible_distribution == 'Kali' or (ansible_distribution == 'Debian' and ansible_distribution_release == 'bookworm')) | ternary('--break-system-packages', omit) }}"
 
 # ToDo: move to common
 - name: Getting hardware model
@@ -140,6 +142,7 @@
       - adafruit-nrfutil
       - click==7.0
     executable: pip3
+    extra_args: "{{ (ansible_distribution == 'Kali' or (ansible_distribution == 'Debian' and ansible_distribution_release == 'bookworm')) | ternary('--break-system-packages', omit) }}"
   when: "msh_firmware is defined and msh_model == 'RAK4631'"
 
 - name: Rebooting device
