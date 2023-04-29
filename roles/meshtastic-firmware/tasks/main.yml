@@ -49,7 +49,7 @@
 
 # ToDo: move to common
 - name: Getting hardware model
-  ansible.builtin.shell: meshtastic --info | grep -Po "(?<='hwModel':\ ')[^'},]+" | head -1
+  ansible.builtin.shell: "meshtastic --info | grep -oP '(?<=\"hwModel\": \")[^\"]+' | head -1"
   register: msh_model_detect
   when: "hw is not defined"
 
