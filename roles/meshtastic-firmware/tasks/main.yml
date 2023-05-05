@@ -146,7 +146,7 @@
   when: "msh_firmware is defined and msh_model == 'RAK4631'"
 
 - name: Rebooting device
-  shell: "meshtastic --reboot {{ '--port ' + hostvars['self']['cyport'] if 'CYGWIN' in ansible_distribution else '' }}""
+  shell: "meshtastic --reboot {{ '--port ' + hostvars['self']['cyport'] if 'CYGWIN' in ansible_distribution else '' }}"
   when: "msh_firmware is defined and msh_model == 'RAK4631'"
 
 - name: Sleep for 20 seconds
